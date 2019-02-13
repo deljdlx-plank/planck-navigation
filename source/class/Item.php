@@ -24,47 +24,37 @@ class Item
 
     protected $parameters = [];
 
+    protected $label = '';
 
 
+    protected $entityLoader;
 
-    /*
-        array(
-            'type' => NavigationItem::TYPE_ROUTE,
-            'route' => 'category',
-            'parameters' => array(
-                'category' => array(
-                    'type' => 'entityLoader',
-                    'entity' => Category::class,
-                    'loadMethod' => EntityLoader::LOAD_BY_ATTRIBUTE,
-                    'attributes' => array(
-                        'qname' => 'programmation'
-                    )
-                )
-            )
-        );
-    */
+
 
     public function loadByDescriptor(array $descriptor)
     {
 
-
+        $this->label = $descriptor['label'];
 
         $this->setType($descriptor['type']);
         $this->setRoute($descriptor['route']);
 
-        foreach ($descriptor['parameters'] as $parameterName => $parameterDescriptor) {
-            if($parameterDescriptor['type'] == static::PARAMETER_ENTITY) {
+        if(!empty($descriptor['parameters'])) {
+            foreach ($descriptor['parameters'] as $parameterName => $parameterDescriptor) {
+                if($parameterDescriptor['type'] == static::PARAMETER_ENTITY) {
 
-                $entity = $this->getEntityLoaderByDescriptor($parameterDescriptor)->getEntity();
+                    $entityLoader = $this->getEntityLoaderByDescriptor($parameterDescriptor);
+                    //$entity = $this->entityLoader->getEntity();
+                    $this->setParameter(
+                        $parameterName,
+                        $entityLoader
+                    );
 
 
-
-                $this->setParameter(
-                   $parameterName,
-                   $entity
-                );
+                }
             }
         }
+
     }
 
 
@@ -108,13 +98,30 @@ class Item
         }
     }
 
+    public function getLabel()
+    {
+        return $this->label;
+    }
+
 
     public function getURLByRoute()
     {
         if(!$this->routeName) {
             throw new Exception('A route name must be specified');
         }
-        return $this->getApplication()->buildRoute($this->routeName, $this->parameters);
+
+        $parameters = [];
+        foreach ($this->parameters as $paramterName => $parameter) {
+            if($parameter instanceof EntityLoader) {
+                $parameters[] = $parameter->getEntity();
+            }
+            else {
+                $parameters[] = $parameter;
+            }
+        }
+
+
+        return $this->getApplication()->buildRoute($this->routeName, $parameters);
     }
 
 

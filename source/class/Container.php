@@ -45,6 +45,14 @@ class Container
         return $this->items[$itemName];
     }
 
+    /**
+     * @return Item[]
+     */
+    public function getItems()
+    {
+        return $this->items;
+    }
+
 
 }
 
