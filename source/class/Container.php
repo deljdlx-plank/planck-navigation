@@ -27,8 +27,10 @@ class Container
 
 
             $item = new Item();
-            $item->loadByDescriptor($itemDescriptor);
-            $this->items[$itemName] = $item;
+            if($item->loadByDescriptor($itemDescriptor)) {
+                $this->items[$itemName] = $item;
+            }
+
         }
     }
 
